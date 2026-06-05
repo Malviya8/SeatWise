@@ -1,27 +1,18 @@
-# render.yaml
-# Deploy to Render with one click: https://render.com/deploy
-# Set ANTHROPIC_API_KEY and OPENAI_API_KEY in Render dashboard → Environment
-
+@"
 services:
   - type: web
     name: seatwise-api
     runtime: python
-    plan: free          # upgrade to starter ($7/mo) for persistent disk
-    buildCommand: |
-      pip install -r requirements.txt
-      python backend/ingest/generate_sample_data.py
-      python backend/retrieval/vector_store.py --build
-    startCommand: uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT
+    pythonVersion: "3.12"
+    buildCommand: pip install -r requirements.txt && python backend/ingest/generate_sample_data.py && python backend/retrieval/vector_store.py --build
+    startCommand: uvicorn backend.api.main:app --host 0.0.0.0 --port `$PORT
     envVars:
-      - key: ANTHROPIC_API_KEY
-        sync: false       # set manually in dashboard
-      - key: OPENAI_API_KEY
+      - key: GROQ_API_KEY
         sync: false
-      - key: CORS_ORIGINS
-        value: https://seatwise.vercel.app  # update after frontend deploy
+      - key: OPENAI_API_KEY
+        value: ""
       - key: CHROMA_PERSIST_DIR
         value: ./data/embeddings
-    disk:
-      name: josaa-data
-      mountPath: /opt/render/project/src/data
-      sizeGB: 1
+      - key: CORS_ORIGINS
+        value: http://localhost:5173
+"@ | Set-Content render.yaml
