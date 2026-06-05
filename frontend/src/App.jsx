@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API = "http://localhost:8000";
 
 const SAFFRON = "#FF6B35";
 const NAVY = "#1a2744";
@@ -250,15 +250,49 @@ const INST_OPTIONS = ["", "IIT", "NIT", "IIIT", "GFTI"];
 const QUOTA_OPTIONS = ["", "All India", "Home State", "Other State"];
 
 function formatMessage(text) {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/^- (.+)/gm, "<li>$1</li>")
-    .replace(/(<li>.*<\/li>\n?)+/g, s => `<ul>${s}</ul>`)
-    .replace(/^(\d+)\. (.+)/gm, "<li>$2</li>")
-    .replace(/\n\n/g, "</p><p>")
-    .replace(/\n/g, "<br/>");
-}
+  let html = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 
+  html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(255,107,53,0.08);color:#c0392b;padding:1px 6px;border-radius:4px;font-size:12px;font-family:monospace">$1</code>');
+  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+
+  html = html.replace(/^&gt; (.+)$/gm, (_, c) => {
+    const isSrc = c.includes("\u{1F4CC}") || c.includes("Source");
+    const isNote = c.includes("\u26A0") || c.includes("Note");
+    const bg = isSrc ? "rgba(15,155,142,0.08)" : isNote ? "rgba(255,107,53,0.08)" : "rgba(26,39,68,0.05)";
+    const brd = isSrc ? "#0f9b8e" : isNote ? "#FF6B35" : "#9aaac0";
+    return `<div style="border-left:3px solid ${brd};background:${bg};padding:8px 12px;border-radius:0 8px 8px 0;margin:8px 0;font-size:13px">${c}</div>`;
+  });
+
+  html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(26,39,68,0.1);margin:12px 0"/>');
+  html = html.replace(/^### (.+)$/gm, '<div style="font-size:13px;font-weight:700;color:#1a2744;margin:12px 0 4px">$1</div>');
+  html = html.replace(/^## (.+)$/gm, '<div style="font-size:14px;font-weight:700;color:#1a2744;margin:14px 0 6px">$1</div>');
+
+  html = html.replace(/((?:^\d+\. .+\n?)+)/gm, (block) => {
+    const items = block.trim().split("\n").map(line =>
+      `<li style="margin:4px 0">${line.replace(/^\d+\. /, "")}</li>`
+    ).join("");
+    return `<ol style="padding-left:20px;margin:8px 0">${items}</ol>`;
+  });
+
+  html = html.replace(/((?:^[•\-] .+\n?)+)/gm, (block) => {
+    const items = block.trim().split("\n").map(line =>
+      `<li style="margin:4px 0">${line.replace(/^[•\-] /, "")}</li>`
+    ).join("");
+    return `<ul style="padding-left:18px;margin:8px 0">${items}</ul>`;
+  });
+
+  html = html.replace(/\bHIGH\b/g, '<span style="background:#d4edda;color:#155724;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:700">HIGH</span>');
+  html = html.replace(/\bMEDIUM\b/g, '<span style="background:#fff3cd;color:#856404;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:700">MEDIUM</span>');
+  html = html.replace(/\bLOW\b/g, '<span style="background:#f8d7da;color:#842029;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:700">LOW</span>');
+
+  html = html.replace(/\n\n/g, '</p><p style="margin:8px 0">');
+  html = html.replace(/\n/g, "<br/>");
+  return `<p style="margin:0">${html}</p>`;
+}
 export default function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
