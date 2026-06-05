@@ -1,0 +1,30 @@
+@"
+# Environment
+.env
+.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Node - MUST exclude these
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Data
+data/raw/
+data/embeddings/
+
+# Evals
+evals/results/
+
+# IDE
+.vscode/
+.idea/
+*.DS_Store
+"@ | Set-Content .gitignore
